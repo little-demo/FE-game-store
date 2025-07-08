@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken, setToken } from "../services/localStorageService";
 
-export default function Login() {
+export default function Login({ onLoginSuccess }) {
   const navigate = useNavigate();
 
   const handleCloseSnackBar = (event, reason) => {
@@ -48,7 +48,7 @@ export default function Login() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    fetch("http://localhost:8080/identity/auth/token", {
+    fetch("http://localhost:8080/auth/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json", // Set the content type to JSON
@@ -70,7 +70,7 @@ export default function Login() {
         }
 
         setToken(data.result?.token);
-
+        if (onLoginSuccess) onLoginSuccess(); // Thông báo cho AppRoutes biết đã login
         navigate("/");
       })
       .catch((error) => {

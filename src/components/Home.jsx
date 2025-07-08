@@ -4,13 +4,13 @@ import { getToken } from "../services/localStorageService";
 import Header from "./header/Header";
 import { Box, Card, CircularProgress, Typography } from "@mui/material";
 
-export default function Home() {
+export default function Home({ accessToken }) {
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState({});
 
   const getUserDetails = async (accessToken) => {
     const response = await fetch(
-      "http://localhost:8080/identity/users/my-info",
+      "http://localhost:8080/users/myInfo",
       {
         method: "GET",
         headers: {
@@ -27,14 +27,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const accessToken = getToken();
-
-    if (!accessToken) {
-      navigate("/login");
-    } else {
+    if (accessToken) {
       getUserDetails(accessToken);
     }
-  }, [navigate]);
+  }, [accessToken]);
 
   return (
     <>
@@ -121,7 +117,7 @@ export default function Home() {
                     fontSize: 14,
                   }}
                 >
-                  {userDetails.firstName}
+                  {userDetails.first_name}
                 </Typography>
               </Box>
               <Box
@@ -146,7 +142,7 @@ export default function Home() {
                     fontSize: 14,
                   }}
                 >
-                  {userDetails.lastName}
+                  {userDetails.last_name}
                 </Typography>
               </Box>
               <Box

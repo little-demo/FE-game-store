@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode";
+
 export const KEY_TOKEN = "accessToken";
 
 export const setToken = (token) => {
@@ -10,4 +12,15 @@ export const getToken = () => {
 
 export const removeToken = () => {
   return localStorage.removeItem(KEY_TOKEN);
+};
+
+export const getRoleFromToken = () => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.scope || null; // scope là quyền
+  } catch {
+    return null;
+  }
 };
