@@ -117,14 +117,6 @@ export default function Header() {
     >
       <MenuItem>
         <IconButton size="large" color="inherit">
-          <Badge badgeContent={2} color="error">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton size="large" color="inherit">
           <Badge badgeContent={4} color="error">
             <NotificationsIcon />
           </Badge>
@@ -179,11 +171,6 @@ export default function Header() {
         )}
 
         <Box sx={{ display: { xs: "none", md: "flex" } }}>
-          <IconButton size="large" color="inherit">
-            <Badge badgeContent={4} color="error">
-              <MailIcon />
-            </Badge>
-          </IconButton>
           <IconButton size="large" color="inherit">
             <Badge badgeContent={17} color="error">
               <NotificationsIcon />
