@@ -1,209 +1,238 @@
-import * as React from "react";
+import React from "react";
 import {
   AppBar,
   Box,
   Toolbar,
-  IconButton,
-  InputBase,
-  Badge,
-  MenuItem,
-  Menu,
   Button,
+  Typography,
+  useMediaQuery,
+  Tooltip,
+  Badge,
+  Divider,
+  Menu, MenuItem, IconButton,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
 } from "@mui/material";
-import { styled, alpha } from "@mui/material/styles";
-import {
-  Search as SearchIcon,
-  AccountCircle,
-  Mail as MailIcon,
-  Notifications as NotificationsIcon,
-  MoreVert as MoreIcon,
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
-import { logOut } from "../../services/authenticationService";
+import LogoutIcon from "@mui/icons-material/Logout";
+import NotificationsIcon from '@mui/icons-material/Notifications';
+
+import { styled } from "@mui/system";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getRoleFromToken } from "../../services/localStorageService";
+import { logOut } from "../../services/authenticationService";
 
-const Search = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
-  marginRight: theme.spacing(2),
-  marginLeft: 0,
-  width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(3),
-    width: "auto",
-  },
+// Custom styled AppBar
+const GlassAppBar = styled(AppBar)(({ theme }) => ({
+  background: "#1976d2", // Màu xanh dương đậm của MUI
+  color: "#fff",
+  boxShadow: "0 2px 20px rgba(0,0,0,0.2)",
 }));
 
-const SearchIconWrapper = styled("div")(({ theme }) => ({
-  padding: theme.spacing(0, 2),
-  height: "100%",
-  position: "absolute",
-  pointerEvents: "none",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
+// Fake notifications data
+const mockNotifications = [
+  {
+    id: 1,
+    title: "Sự kiện mới",
+    time: "5 phút trước",
+    content: "Tham gia ngay sự kiện săn thẻ bài cực hấp dẫn!"
   },
-}));
+  {
+    id: 2,
+    title: "Cập nhật hệ thống",
+    time: "1 giờ trước",
+    content: "Hệ thống sẽ bảo trì vào lúc 22:00 tối nay."
+  },
+  {
+    id: 3,
+    title: "Tặng quà đăng nhập",
+    time: "Hôm qua",
+    content: "Bạn đã nhận được 1 gói quà khi đăng nhập hôm nay."
+  }
+];
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMediaQuery("(max-width:768px)");
   const role = getRoleFromToken();
   const isAdmin = role === "ADMIN";
 
+  const navLinks = [
+    { label: "Cửa hàng", path: "/marketplace" },
+    { label: "Thông tin sự kiện", path: "/event" },
+    ...(!isAdmin ? [{ label: "Hồ sơ", path: "/profile" }] : []),
+    ...(!isAdmin ? [{ label: "Giao dịch", path: "/transaction" }] : []),
+    ...(isAdmin ? [{ label: "Quản trị", path: "/admin" }] : []),
+  ];
+
+  // Menu thông báo
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
 
-  const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-  const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMobileMenuClose = () => setMobileMoreAnchorEl(null);
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    handleMobileMenuClose();
+  const handleOpenNotifications = (event) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleMobileMenuOpen = (event) => setMobileMoreAnchorEl(event.currentTarget);
+  const handleCloseNotifications = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = () => {
-    handleMenuClose();
     logOut();
     navigate("/login");
   };
 
-  const menuId = "primary-search-account-menu";
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={menuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
-      <MenuItem onClick={handleLogout}>Log Out</MenuItem>
-    </Menu>
-  );
-
-  const mobileMenuId = "primary-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem>
-        <IconButton size="large" color="inherit">
-          <Badge badgeContent={4} color="error">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton size="large" color="inherit">
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-    </Menu>
-  );
-
   return (
-    <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-      <Toolbar>
-        <IconButton
-          size="large"
-          edge="start"
-          color="inherit"
-          sx={{ mr: 2 }}
-          onClick={() => navigate("/")}
-        >
+    <GlassAppBar position="sticky">
+      <Toolbar className="container" sx={{ justifyContent: "space-between" }}>
+        {/* LEFT SIDE */}
+        <Box display="flex" alignItems="center" gap={4}>
           <Box
             component="img"
             src="/logo/logo.png"
             alt="logo"
-            sx={{ width: 35, height: 35, borderRadius: 1 }}
+            sx={{ width: 40, height: 40, borderRadius: 1, cursor: "pointer" }}
+            onClick={() => navigate("/")}
           />
-        </IconButton>
 
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase placeholder="Search…" inputProps={{ "aria-label": "search" }} />
-        </Search>
+          {!isMobile && (
+            <Box display="flex" gap={3}>
+              {navLinks.map((item) => {
+                const isActive = location.pathname.startsWith(item.path);
+                return (
+                  <Button
+                    key={item.label}
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      color: isActive ? "#fff" : "#bbdefb", // Trắng khi active, xanh nhạt khi không active
+                      fontWeight: isActive ? 600 : 500,
+                      borderBottom: isActive ? "2px solid #fff" : "2px solid transparent",
+                      borderRadius: 0,
+                      transition: "color 0.3s, border-bottom 0.3s",
+                    }}
+                  >
+                    <strong>{item.label}</strong>
+                  </Button>
+                );
+              })}
+            </Box>
+          )}
+        </Box>
 
-        <Box sx={{ flexGrow: 1 }} />
+        {/* RIGHT SIDE */}
+        {!isMobile && (
+          <Box display="flex" gap={1} alignItems="center">
+            {!role ? (
+              <>
+                <Button
+                  variant="outlined"
+                  sx={{ color: "#667eea", borderColor: "#667eea" }}
+                  onClick={() => navigate("/login")}
+                >
+                  Đăng nhập
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{ bgcolor: "#667eea" }}
+                  onClick={() => navigate("/register")}
+                >
+                  Đăng ký
+                </Button>
+              </>
+            ) : (
+              <>
+                <Box display="flex" alignItems="center" gap={3}>
+                  <Tooltip title="Thông báo">
+                    <IconButton onClick={handleOpenNotifications} sx={{ color: "#fff" }}>
+                      <Badge badgeContent={mockNotifications.length} color="error">
+                        <NotificationsIcon />
+                      </Badge>
+                    </IconButton>
+                  </Tooltip>
 
-        {isAdmin && (
-          <Button
-            variant="contained"
-            color="secondary"
-            sx={{ mr: 2 }}
-            onClick={() => navigate("/admin")}
-          >
-            Quản lý hệ thống
-          </Button>
+                  {/* Hiển thị menu thông báo */}
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleCloseNotifications}
+                    PaperProps={{
+                      elevation: 3,
+                      sx: {
+                        width: 380,
+                        maxHeight: 500,
+                        mt: 1.5,
+                        borderRadius: 2
+                      }
+                    }}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ px: 2, py: 1 }}>
+                      <strong>Thông báo</strong>
+                    </Typography>
+                    <Divider />
+                    {mockNotifications.map((notif) => (
+                      <MenuItem key={notif.id} sx={{ alignItems: "flex-start" }} onClick={handleCloseNotifications}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: "#1976d2" }}>🔔</Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle1" fontWeight={600} sx={{ whiteSpace: 'normal' }}>
+                              {notif.title}
+                            </Typography>
+                          }
+                          secondary={
+                            <>
+                              <Typography variant="caption" color="text.secondary">
+                                {notif.time}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="text.primary"
+                                sx={{ whiteSpace: 'normal', mt: 0.5 }}
+                              >
+                                {notif.content}
+                              </Typography>
+                            </>
+                          }
+                        />
+                      </MenuItem>
+                    ))}
+                  </Menu>
+
+
+                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    Xin chào, <strong>{role}!</strong>
+                  </Typography>
+                </Box>
+                <Tooltip title="Đăng xuất">
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      color: "#fff", borderColor: "#fff", minWidth: "40px", padding: "6px",
+                      "&:hover": {
+                        borderColor: "#64b5f6",
+                        backgroundColor: "rgba(255,255,255,0.08)",
+                      },
+                    }}
+                    onClick={handleLogout}
+                  >
+                    <LogoutIcon />
+                  </Button>
+                </Tooltip>
+              </>
+            )}
+          </Box>
         )}
-
-        <Box sx={{ display: { xs: "none", md: "flex" } }}>
-          <IconButton size="large" color="inherit">
-            <Badge badgeContent={17} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-          <IconButton
-            size="large"
-            edge="end"
-            aria-label="account"
-            aria-controls={menuId}
-            aria-haspopup="true"
-            onClick={handleProfileMenuOpen}
-            color="inherit"
-          >
-            <AccountCircle />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: { xs: "flex", md: "none" } }}>
-          <IconButton
-            size="large"
-            aria-label="show more"
-            aria-controls={mobileMenuId}
-            aria-haspopup="true"
-            onClick={handleMobileMenuOpen}
-            color="inherit"
-          >
-            <MoreIcon />
-          </IconButton>
-        </Box>
       </Toolbar>
-      {renderMobileMenu}
-      {renderMenu}
-    </AppBar>
+    </GlassAppBar>
   );
 }

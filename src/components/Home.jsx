@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/localStorageService";
 import Header from "./header/Header";
-import { Box, Card, CircularProgress, Typography } from "@mui/material";
+import { Box, Card, CircularProgress, Typography, Button, Grid, Paper } from "@mui/material";
+import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
+import StyleIcon from "@mui/icons-material/Style";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+
 
 export default function Home({ accessToken }) {
   const navigate = useNavigate();
@@ -32,162 +37,80 @@ export default function Home({ accessToken }) {
     }
   }, [accessToken]);
 
+  const features = [
+    {
+      icon: <SportsEsportsIcon sx={{ fontSize: 40, color: '#667eea' }} />,
+      title: "Trải nghiệm Game",
+      desc: "Tùy chỉnh giao diện, đăng nhập dễ dàng và trải nghiệm mượt mà",
+    },
+    {
+      icon: <StyleIcon sx={{ fontSize: 40, color: '#667eea' }} />,
+      title: "Bộ sưu tập thẻ",
+      desc: "Quản lý bộ sưu tập thẻ bài cá nhân với hệ thống túi đồ thông minh",
+    },
+    {
+      icon: <MonetizationOnIcon sx={{ fontSize: 40, color: '#667eea' }} />,
+      title: "Thị trường giao dịch",
+      desc: "Mua bán thẻ bài với cộng đồng, giá cả minh bạch",
+    },
+    {
+      icon: <EmojiEventsIcon sx={{ fontSize: 40, color: '#667eea' }} />,
+      title: "Giải đấu",
+      desc: "Tham gia các giải đấu và sự kiện để nhận thưởng hấp dẫn",
+    },
+  ];
+
   return (
     <>
-      <Header></Header>
-      {userDetails ? (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          height="100vh"
-          bgcolor={"#f0f2f5"}
-        >
-          <Card
-            sx={{
-              minWidth: 350,
-              maxWidth: 500,
-              boxShadow: 4,
-              borderRadius: 4,
-              padding: 4,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                width: "100%",
-                gap: "10px",
-              }}
-            >
-              <Typography
+      <Box
+        sx={{
+          p: 4,
+          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          borderRadius: 2,
+          textAlign: 'center',
+          mb: 4,
+        }}
+      >
+        <Typography variant="h3" sx={{ mb: 2, color: '#333' }}>
+          <strong>Chào mừng đến AHP GAME</strong>
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 3, color: '#666' }}>
+          Nền tảng giao dịch thẻ bài và kết nối game hàng đầu
+        </Typography>
+
+        <Grid container spacing={3} mt={5}>
+          {features.map((f, idx) => (
+            <Grid item xs={12} sm={6} md={3} key={idx}>
+              <Paper
+                elevation={3}
                 sx={{
-                  fontSize: 18,
-                  mb: "40px",
-                }}
-              >
-                Welcome back to Devteria, {userDetails.username} !
-              </Typography>
-              <Box
-                sx={{
+                  height: "100%", // đảm bảo chiếm đủ chiều cao của Grid
+                  minHeight: 100, // thiết lập chiều cao tối thiểu
                   display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  width: "100%", // Ensure content takes full width
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  p: 3,
+                  borderRadius: 2,
+                  textAlign: 'center',
+                  transition: '0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                  }}
-                >
-                  User Id
+                {f.icon}
+                <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
+                  <strong>{f.title}</strong>
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                  }}
-                >
-                  {userDetails.id}
+                <Typography variant="body2" color="text.secondary">
+                  {f.desc}
                 </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  width: "100%", // Ensure content takes full width
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                  }}
-                >
-                  First Name
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                  }}
-                >
-                  {userDetails.first_name}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  width: "100%", // Ensure content takes full width
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                  }}
-                >
-                  Last Name
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                  }}
-                >
-                  {userDetails.last_name}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  width: "100%", // Ensure content takes full width
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                  }}
-                >
-                  Date of birth
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                  }}
-                >
-                  {userDetails.dob}
-                </Typography>
-              </Box>
-            </Box>
-          </Card>
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "30px",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-          }}
-        >
-          <CircularProgress></CircularProgress>
-          <Typography>Loading ...</Typography>
-        </Box>
-      )}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     </>
   );
 }

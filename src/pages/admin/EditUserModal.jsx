@@ -12,7 +12,6 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
     const [form, setForm] = useState({
         username: '',
         email: '',
-        password: '',
         first_name: '',
         last_name: '',
         dob: '',
@@ -29,7 +28,6 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
             setForm({
                 username: user.username || '',
                 email: user.email || '',
-                password: '', // Keep password empty for security
                 first_name: user.first_name || '',
                 last_name: user.last_name || '',
                 dob: user.dob || '',
@@ -89,9 +87,7 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
 
             // Prepare update payload (exclude empty password)
             const updatePayload = { ...form };
-            if (!updatePayload.password) {
-                delete updatePayload.password;
-            }
+
             console.log("Update payload:", updatePayload);
 
             const response = await axios.put(`http://localhost:8080/users/${user.id}`, updatePayload, {
@@ -120,7 +116,7 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
 
     return (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle><strong>Chỉnh sửa thông tin người dùng</strong></DialogTitle>
             <DialogContent>
                 <Box sx={{ mt: 2 }}>
                     <Grid container spacing={2}>
@@ -147,19 +143,7 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
                         </Grid>
                         <Grid item xs={6}>
                             <TextField
-                                label="Password"
-                                name="password"
-                                type="password"
-                                value={form.password}
-                                onChange={handleChange}
-                                fullWidth
-                                placeholder="Leave empty to keep current password"
-                                helperText="Leave empty to keep current password"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <TextField
-                                label="Date of Birth"
+                                label="Ngày tháng năm sinh"
                                 name="dob"
                                 type="date"
                                 value={form.dob}
@@ -216,14 +200,14 @@ const EditUserModal = ({ open, onClose, onUserUpdated, user }) => {
 
             <DialogActions>
                 <Button onClick={handleClose} disabled={submitting}>
-                    Cancel
+                    Hủy
                 </Button>
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
                     disabled={submitting || uploading}
                 >
-                    {submitting ? "Updating..." : "Update"}
+                    {submitting ? "Updating..." : "Cập nhật"}
                 </Button>
             </DialogActions>
         </Dialog>
