@@ -22,6 +22,8 @@ const Profile = () => {
     const [openSellModal, setOpenSellModal] = useState(false);
     const [selectedCard, setSelectedCard] = useState(null);
 
+    const [filterType, setFilterType] = useState('All'); // All | MINION | SPELL
+
     const [openChangePassword, setOpenChangePassword] = useState(false);
     const [openEditModal, setOpenEditModal] = useState(false);
     const [snackbar, setSnackbar] = useState({
@@ -134,9 +136,11 @@ const Profile = () => {
         );
     }
 
-    const filteredCards = cards.filter(card =>
-        card.cardName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCards = cards.filter(card => {
+        const matchesName = card.cardName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'All' || card.cardType === filterType;
+        return matchesName && matchesType;
+    });
 
     return (
         <Box>
@@ -181,21 +185,34 @@ const Profile = () => {
                             <Grid item>
                                 <Typography variant="h5" color="primary" fontWeight="bold">Bộ sưu tập thẻ bài</Typography>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={4}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    placeholder="Tìm kiếm thẻ bài..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
+                            <Grid item xs={12} sm={6} md={6}>
+                                <Box display="flex" gap={2} justifyContent="flex-end" flexWrap="wrap">
+                                    <TextField
+                                        size="small"
+                                        placeholder="Tìm kiếm thẻ bài..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <SearchIcon />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                    <TextField
+                                        select
+                                        size="small"
+                                        value={filterType}
+                                        onChange={(e) => setFilterType(e.target.value)}
+                                        sx={{ minWidth: 120 }}
+                                        SelectProps={{ native: true }}
+                                    >
+                                        <option value="All">Tất cả</option>
+                                        <option value="MINION">Minion</option>
+                                        <option value="SPELL">Spell</option>
+                                    </TextField>
+                                </Box>
                             </Grid>
                         </Grid>
 

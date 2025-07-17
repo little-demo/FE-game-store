@@ -24,3 +24,14 @@ export const getRoleFromToken = () => {
     return null;
   }
 };
+
+export const getUserIdFromToken = () => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.sub || null; // hoặc decoded.id tùy JWT bạn thiết kế
+  } catch {
+    return null;
+  }
+};

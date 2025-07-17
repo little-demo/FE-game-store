@@ -26,6 +26,8 @@ const CardManagementGrid = () => {
     const [viewCard, setViewCard] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
 
+    const [filterType, setFilterType] = useState('All'); // All | MINION | SPELL
+
     const showSnackbar = (message, severity = "success") => {
         setSnackbar({ open: true, message, severity });
     };
@@ -40,6 +42,7 @@ const CardManagementGrid = () => {
             const data = await CardService.getAllCards();
             setAllCards(data);
             setCards(data);
+            console.log("cards", data);
         } catch (err) {
             console.error("Failed to load cards", err);
             showSnackbar("Failed to load cards", "error");
@@ -59,28 +62,12 @@ const CardManagementGrid = () => {
             showSnackbar("Failed to delete card", "error");
         }
     };
-    const handleSearchChange = (e) => {
-        const keyword = e.target.value.toLowerCase();
-        setSearchTerm(keyword);
-        const filtered = allCards.filter(card =>
-            card.name.toLowerCase().includes(keyword)
-        );
-        setCards(filtered);
-    };
 
-    // const handleDeleteCard = async (cardId) => {
-    //     try {
-    //         await axios.delete(`http://localhost:8080/cards/${cardId}`, {
-    //             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` }
-    //         });
-    //         setAllCards(prev => prev.filter(c => c.id !== cardId));
-    //         setCards(prev => prev.filter(c => c.id !== cardId));
-    //         showSnackbar("Card deleted successfully");
-    //     } catch (err) {
-    //         console.error("Delete failed", err);
-    //         showSnackbar("Failed to delete card", "error");
-    //     }
-    // };
+    const filteredCards = allCards.filter(card => {
+        const matchesName = card.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'All' || card.cardType === filterType;
+        return matchesName && matchesType;
+    });
 
     useEffect(() => {
         fetchCards();
@@ -98,36 +85,62 @@ const CardManagementGrid = () => {
             </Snackbar>
 
             <Box mb={3}>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={4}>
-                        <Typography variant="h4"><strong>QUẢN LÝ THẺ BÀI</strong></Typography>
-                    </Grid>
+                {/* Dòng đầu tiên: Tiêu đề + Nút thêm */}
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    flexWrap="wrap"
+                    mb={2}
+                >
+                    <Typography variant="h5" fontWeight="bold">
+                        QUẢN LÝ THẺ BÀI
+                    </Typography>
 
-                    <Grid item xs={12} md={5}>
-                        <TextField
-                            fullWidth
-                            variant="outlined"
-                            placeholder="Tìm theo tên thẻ..."
-                            size="small"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                        />
-                    </Grid>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setOpenAddModal(true)}
+                        sx={{ whiteSpace: "nowrap" }}
+                    >
+                        Thêm thẻ bài
+                    </Button>
+                </Box>
 
-                    <Grid item xs={12} md={3} textAlign="right">
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => setOpenAddModal(true)}
-                        >
-                            Thêm thẻ bài
-                        </Button>
-                    </Grid>
-                </Grid>
+                {/* Dòng thứ hai: Tìm kiếm + Lọc loại thẻ */}
+                <Box
+                    display="flex"
+                    justifyContent="flex-start"
+                    alignItems="center"
+                    gap={2}
+                    flexWrap="wrap"
+                >
+                    <TextField
+                        variant="outlined"
+                        placeholder="Tìm theo tên..."
+                        size="small"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        sx={{ width: 400 }}
+                    />
+                    <TextField
+                        select
+                        size="small"
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        sx={{ minWidth: 120 }}
+                        SelectProps={{ native: true }}
+                    >
+                        <option value="All">Tất cả</option>
+                        <option value="MINION">Minion</option>
+                        <option value="SPELL">Spell</option>
+                    </TextField>
+                </Box>
             </Box>
 
+
             <Grid container spacing={2}>
-                {cards.map(card => (
+                {filteredCards.map(card => (
                     <Grid item xs={12} sm={6} md={2.4} key={card.id}>
                         <Box
                             sx={{
