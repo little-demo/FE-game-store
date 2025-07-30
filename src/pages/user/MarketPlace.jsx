@@ -104,7 +104,8 @@ const MarketPlace = () => {
         return listings.filter(listing => {
             const matchesName = listing.cardName.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesType = filterType === 'All' || listing.cardType === filterType;
-            return matchesName && matchesType;
+            const isNotSoldOut = listing.status !== "Đã bán";
+            return matchesName && matchesType && isNotSoldOut;
         });
     };
 
@@ -241,7 +242,7 @@ const MarketPlace = () => {
                                     </Button>
 
                                     {!isMy ? (
-                                        currentUsername !== listing.sellerName && ( // hoặc listing.sellerId nếu backend trả theo kiểu đó
+                                        currentUsername !== listing.sellerName && (
                                             <Button
                                                 variant="contained"
                                                 color="success"

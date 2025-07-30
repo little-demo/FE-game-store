@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, Alert, MenuItem, Box, Typography
@@ -10,7 +10,10 @@ import { CardService } from "../../services/CardService";
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dwatrt5tw/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "game-manager";
 
+const EFFECT_TIMINGS = ["onPlay", "onDeath", "onStartOfTurn", "onEndOfTurn"];
+
 const AddCardModal = ({ open, onClose, onCardAdded }) => {
+    const token = localStorage.getItem("accessToken");
     const [form, setForm] = useState({
         name: '',
         description: '',
@@ -27,6 +30,18 @@ const AddCardModal = ({ open, onClose, onCardAdded }) => {
     const [uploadTarget, setUploadTarget] = useState(null);
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+
+    const [bindings, setBindings] = useState([{ effectId: "", timing: "onPlay" }]);
+    const [effectsList, setEffectsList] = useState([]);
+
+    useEffect(() => {
+        axios.get("http://localhost:8080/cardEffects", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => {
+                setEffectsList(res.data.result || []);
+            });
+    }, []);
 
     const handleChange = (e) => {
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -57,7 +72,11 @@ const AddCardModal = ({ open, onClose, onCardAdded }) => {
         try {
             setSubmitting(true);
             setError(null);
-            const newCard = await CardService.addCard(form);
+            const payload = {
+                ...form,
+                effects: bindings
+            };
+            const newCard = await CardService.addCard(payload);
             onCardAdded(newCard);
             onClose();
             setForm({ ...form, name: '', description: '', imageUrl: '', overallImageUrl: '', mana: 0, attack: 0, health: 0, marketPrice: 0 });
@@ -172,6 +191,57 @@ const AddCardModal = ({ open, onClose, onCardAdded }) => {
                     </Grid>
 
                     {error && <Alert severity="error" sx={{ mt: 3 }}>{error}</Alert>}
+                </Box>
+                <Box mt={3}>
+                    <Typography variant="h6" gutterBottom>Hiệu ứng</Typography>
+                    {bindings.map((binding, index) => (
+                        <Grid container spacing={2} key={index} alignItems="center" sx={{ mb: 1 }}>
+                            <Grid item xs={6}>
+                                <TextField
+                                    label="Hiệu ứng"
+                                    select
+                                    fullWidth
+                                    value={binding.effectId}
+                                    onChange={(e) => {
+                                        const newBindings = [...bindings];
+                                        newBindings[index].effectId = e.target.value;
+                                        setBindings(newBindings);
+                                    }}
+                                >
+                                    {effectsList.map(effect => (
+                                        <MenuItem key={effect.id} value={effect.id}>{effect.name}</MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                            <Grid item xs={4}>
+                                <TextField
+                                    label="Timing"
+                                    select
+                                    fullWidth
+                                    value={binding.timing}
+                                    onChange={(e) => {
+                                        const newBindings = [...bindings];
+                                        newBindings[index].timing = e.target.value;
+                                        setBindings(newBindings);
+                                    }}
+                                >
+                                    {EFFECT_TIMINGS.map(timing => (
+                                        <MenuItem key={timing} value={timing}>{timing}</MenuItem>
+                                    ))}
+                                </TextField>
+                            </Grid>
+                            <Grid item xs={2}>
+                                <Button color="error" onClick={() => {
+                                    const updated = [...bindings];
+                                    updated.splice(index, 1);
+                                    setBindings(updated);
+                                }}>Xóa</Button>
+                            </Grid>
+                        </Grid>
+                    ))}
+                    <Button variant="outlined" onClick={() => setBindings([...bindings, { effectId: "", timing: "onPlay" }])}>
+                        Thêm hiệu ứng
+                    </Button>
                 </Box>
             </DialogContent>
 

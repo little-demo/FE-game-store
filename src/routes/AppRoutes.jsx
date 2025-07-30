@@ -4,6 +4,7 @@ import { getRoleFromToken, getToken } from "../services/localStorageService";
 import Login from "../components/Login";
 import Home from "../components/Home";
 import Profile from "../pages/user/Profile";
+import Register from "../components/Register";
 
 import AdminLayout from "../layouts/AdminLayout";
 import Dashboard from "../pages/admin/Dashboard";
@@ -16,6 +17,9 @@ import Marketplace from "../pages/user/MarketPlace";
 import EventPage from "../pages/user/Event";
 import { useEffect, useState } from "react";
 import Transaction from "../pages/user/Transaction";
+import Payment from "../pages/user/Payment";
+import NotificationManagement from "../pages/admin/NotificationManagement";
+import CardEffectManagement from "../pages/admin/CardEffectManagement";
 
 const AppRoutes = () => {
   const [accessToken, setAccessToken] = useState(getToken());
@@ -40,6 +44,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Route đăng nhập */}
         <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+        <Route path="/register" element={<Register />} />
 
         {/* USER + ADMIN dùng chung layout này */}
         {(role === "USER" || role === "ADMIN") && (
@@ -49,6 +54,7 @@ const AppRoutes = () => {
             <Route path="/event" element={<EventPage />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/transaction" element={<Transaction />} />
+            <Route path="/payment" element={<Payment />} />
           </Route>
         )}
 
@@ -58,6 +64,8 @@ const AppRoutes = () => {
             <Route index element={<Dashboard />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="cards" element={<CardManagement />} />
+            <Route path="cardsEffect" element={<CardEffectManagement />} />
+            <Route path="notifications" element={<NotificationManagement />} />
             <Route path="events" element={<EventManagement />} />
             <Route path="revenue" element={<RevenueManagement />} />
           </Route>

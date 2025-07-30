@@ -8,14 +8,15 @@ import {
     ListItemText,
     Box,
     CssBaseline,
-    Toolbar,
     styled,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import StyleIcon from "@mui/icons-material/Style";
 import EventIcon from "@mui/icons-material/Event";
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import FlareIcon from '@mui/icons-material/Flare';
 import Header from "../components/header/Header";
 
 const drawerWidth = 240;
@@ -35,6 +36,8 @@ const AdminLayout = () => {
         { text: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
         { text: "Quản lý người dùng", icon: <PeopleIcon />, path: "/admin/users" },
         { text: "Quản lý thẻ bài", icon: <StyleIcon />, path: "/admin/cards" },
+        { text: "Hiệu ứng thẻ bài", icon: <FlareIcon />, path: "/admin/cardsEffect" },
+        { text: "Quản lý thông báo", icon: <NotificationsActiveIcon />, path: "/admin/notifications" },
         { text: "Quản lý sự kiện", icon: <EventIcon />, path: "/admin/events" },
         { text: "Quản lý doanh thu", icon: <MonetizationOnIcon />, path: "/admin/revenue" },
     ];

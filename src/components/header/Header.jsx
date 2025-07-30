@@ -8,19 +8,21 @@ import {
   useMediaQuery,
   Tooltip,
   Badge,
-  Divider,
-  Menu, MenuItem, IconButton,
-  ListItemText,
-  ListItemAvatar,
-  Avatar,
+  Menu, MenuItem, IconButton
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import DiamondIcon from '@mui/icons-material/Diamond';
 
 import { styled } from "@mui/system";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getRoleFromToken } from "../../services/localStorageService";
+import { getRoleFromToken, getUserIdFromToken, getExpirationFromToken, getToken } from "../../services/localStorageService";
 import { logOut } from "../../services/authenticationService";
+
+import { useState, useEffect } from "react";
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 // Custom styled AppBar
 const GlassAppBar = styled(AppBar)(({ theme }) => ({
@@ -52,29 +54,75 @@ const mockNotifications = [
 ];
 
 export default function Header() {
+  const token = getToken();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery("(max-width:768px)");
   const role = getRoleFromToken();
   const isAdmin = role === "ADMIN";
+  const usename = getUserIdFromToken();
+  const expiration = getExpirationFromToken();
 
   const navLinks = [
     { label: "Cửa hàng", path: "/marketplace" },
     { label: "Thông tin sự kiện", path: "/event" },
     ...(!isAdmin ? [{ label: "Hồ sơ", path: "/profile" }] : []),
     ...(!isAdmin ? [{ label: "Giao dịch", path: "/transaction" }] : []),
+    ...(!isAdmin ? [{ label: "Nạp kim cương", path: "/payment" }] : []),
     ...(isAdmin ? [{ label: "Quản trị", path: "/admin" }] : []),
   ];
 
+  const [userInfo, setUserInfo] = useState(null);
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const socket = new SockJS(`http://localhost:8080/ws?username=${usename}`);
+    const client = new Client({
+      webSocketFactory: () => socket,
+      connectHeaders: {},
+      onConnect: () => {
+        console.log("✅ Đã kết nối WebSocket");
+
+        client.subscribe("/user/topic/notifications", (message) => {
+          try {
+            const body = JSON.parse(message.body);
+            console.log("📩 Nhận thông báo riêng:", body);
+
+            setNotifications((prev) => [body, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+          } catch (error) {
+            console.error("❌ Lỗi xử lý message:", error);
+          }
+        });
+
+      },
+      onStompError: (frame) => {
+        console.error("❌ STOMP lỗi:", frame);
+      },
+      reconnectDelay: 5000, // Tự động reconnect nếu mất kết nối
+      debug: (str) => console.log(str), // Debug log nếu cần
+    });
+
+    client.activate();
+
+    return () => {
+      client.deactivate(); // Đảm bảo hủy kết nối khi unmount
+    };
+  }, []);
+
+
+
   // Menu thông báo
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const handleOpenNotifications = (event) => {
+  const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleCloseNotifications = () => {
+  const handleClose = () => {
     setAnchorEl(null);
   };
 
@@ -82,6 +130,67 @@ export default function Header() {
     logOut();
     navigate("/login");
   };
+
+  const getMyNotifications = async () => {
+    const token = getToken();
+
+    try {
+      const response = await fetch("http://localhost:8080/notifications/myNotifications", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể lấy thông báo");
+      }
+
+      const result = await response.json();
+      setNotifications(result.result || []);
+      setUnreadCount((result.result || []).filter((n) => !n.isRead).length);
+    } catch (error) {
+      console.error("Lỗi khi lấy thông báo:", error);
+    }
+  };
+
+  useEffect(() => {
+    getMyNotifications();
+  }, []);
+
+  const markAsRead = async (id) => {
+    const token = getToken();
+    try {
+      await fetch(`http://localhost:8080/notifications/${id}/markAsRead`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      getMyNotifications(); // Refresh list
+    } catch (error) {
+      console.error("Lỗi khi đánh dấu đã đọc:", error);
+    }
+  };
+
+  useEffect(() => {
+    const token = getToken();
+
+    if (token) {
+      fetch("http://localhost:8080/users/myInfo", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("User info:", data);
+          setUserInfo(data);
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy thông tin người dùng:", err);
+        });
+    }
+  }, []);
 
   return (
     <GlassAppBar position="sticky">
@@ -142,10 +251,24 @@ export default function Header() {
               </>
             ) : (
               <>
+                {userInfo && (
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccountBalanceWalletIcon sx={{ color: "#fff", fontSize: 20 }} />
+                    <Typography variant="body2" sx={{ color: "#fff", display: 'flex', alignItems: 'center' }}>
+                      <strong>
+                        {typeof userInfo?.result?.balance === "number"
+                          ? userInfo.result.balance.toLocaleString()
+                          : "0"}
+                      </strong>
+                      <DiamondIcon sx={{ fontSize: 16, color: "#00ffff", ml: 0.5 }} />
+                    </Typography>
+                  </Box>
+                )}
+
                 <Box display="flex" alignItems="center" gap={3}>
                   <Tooltip title="Thông báo">
-                    <IconButton onClick={handleOpenNotifications} sx={{ color: "#fff" }}>
-                      <Badge badgeContent={mockNotifications.length} color="error">
+                    <IconButton color="inherit" onClick={handleMenu}>
+                      <Badge badgeContent={unreadCount} color="error">
                         <NotificationsIcon />
                       </Badge>
                     </IconButton>
@@ -154,63 +277,43 @@ export default function Header() {
                   {/* Hiển thị menu thông báo */}
                   <Menu
                     anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleCloseNotifications}
-                    PaperProps={{
-                      elevation: 3,
-                      sx: {
-                        width: 380,
-                        maxHeight: 500,
-                        mt: 1.5,
-                        borderRadius: 2
-                      }
-                    }}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right',
-                    }}
+                    open={Boolean(anchorEl)}
+                    onClose={handleClose}
                   >
-                    <Typography variant="h6" sx={{ px: 2, py: 1 }}>
-                      <strong>Thông báo</strong>
-                    </Typography>
-                    <Divider />
-                    {mockNotifications.map((notif) => (
-                      <MenuItem key={notif.id} sx={{ alignItems: "flex-start" }} onClick={handleCloseNotifications}>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: "#1976d2" }}>🔔</Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography variant="subtitle1" fontWeight={600} sx={{ whiteSpace: 'normal' }}>
+                    {notifications.length === 0 ? (
+                      <MenuItem>Không có thông báo</MenuItem>
+                    ) : (
+                      notifications.map((notif) => (
+                        <MenuItem
+                          key={notif.id}
+                          onClick={async () => {
+                            await markAsRead(notif.id);
+                            handleClose();
+                          }}
+                          sx={{
+                            alignItems: "flex-start",
+                            backgroundColor: notif.isRead ? "inherit" : "#e3f2fd",
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight={notif.isRead ? 400 : 600}>
                               {notif.title}
                             </Typography>
-                          }
-                          secondary={
-                            <>
-                              <Typography variant="caption" color="text.secondary">
-                                {notif.time}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.primary"
-                                sx={{ whiteSpace: 'normal', mt: 0.5 }}
-                              >
-                                {notif.content}
-                              </Typography>
-                            </>
-                          }
-                        />
-                      </MenuItem>
-                    ))}
+                            <Typography variant="body2" color="text.secondary">
+                              {notif.message}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(notif.createdAt).toLocaleString("vi-VN")}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      ))
+                    )}
                   </Menu>
 
 
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    Xin chào, <strong>{role}!</strong>
+                    Xin chào, <strong>{usename}!</strong>
                   </Typography>
                 </Box>
                 <Tooltip title="Đăng xuất">

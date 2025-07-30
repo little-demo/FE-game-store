@@ -10,7 +10,6 @@ import {
   Alert,
 } from "@mui/material";
 
-import GoogleIcon from "@mui/icons-material/Google";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken, setToken } from "../services/localStorageService";
@@ -115,7 +114,7 @@ export default function Login({ onLoginSuccess }) {
         >
           <CardContent>
             <Typography variant="h5" component="h1" gutterBottom>
-              Welcome to Devtetia
+              Welcome to AHP GAME
             </Typography>
             <Box
               component="form"
@@ -155,7 +154,7 @@ export default function Login({ onLoginSuccess }) {
                   mb: "25px",
                 }}
               >
-                Login
+                Đăng nhập
               </Button>
               <Divider></Divider>
             </Box>
@@ -164,22 +163,11 @@ export default function Login({ onLoginSuccess }) {
               <Button
                 type="button"
                 variant="contained"
-                color="secondary"
-                size="large"
-                onClick={handleClick}
-                fullWidth
-                sx={{ gap: "10px" }}
-              >
-                <GoogleIcon />
-                Continue with Google
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
                 color="success"
                 size="large"
+                onClick={() => navigate("/register")}
               >
-                Create an account
+                Tạo tài khoản mới
               </Button>
             </Box>
           </CardContent>
